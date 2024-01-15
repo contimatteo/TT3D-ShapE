@@ -13,13 +13,14 @@ from shap_e.util.notebooks import create_pan_cameras
 from shap_e.util.notebooks import decode_latent_images
 from shap_e.util.notebooks import gif_widget
 
+import utils as Utils
 
 ###
 
 T_Model = Dict[str, torch.Tensor]
 
-# assert torch.cuda.is_available() ### TODO: enable this check?
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# assert Utils.cuda_is_available()  ### TODO: enable this check?
+device = Utils.get_cuda_device()
 
 ###
 
@@ -28,18 +29,19 @@ def _args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--prompt', type=str, required=True)
 
 
-def _load_models(xm: bool) -> Tuple[T_Model, GaussianDiffusion, Optional[T_Model]]:
-    model  = load_model('text300M', device=device)
+def _load_models(
+        xm: bool) -> Tuple[T_Model, GaussianDiffusion, Optional[T_Model]]:
+    model = load_model('text300M', device=device)
     diffusion = diffusion_from_config(load_config('diffusion'))
     xm = xm if load_model('transmitter', device=device) else None
     return model, diffusion, xm
 
 
 def _sample_latents(
-    prompt: str, 
-    model: T_Model, 
-    diffusion: GaussianDiffusion, 
-    batch_size: int = 4, 
+    prompt: str,
+    model: T_Model,
+    diffusion: GaussianDiffusion,
+    batch_size: int = 4,
     guidance_scale: float = 15.0,
 ) -> Any:
     assert isinstance(prompt, str)
@@ -69,7 +71,9 @@ def _store_latents(out_path: Path, latents: Any) -> None:
     assert out_path.is_dir()
     # assert isinstance(latents, ?)
 
+
 ###
+
 
 def main(prompt: str):
     model, diffusion, _ = _load_models(xm=False)
@@ -89,10 +93,11 @@ def main(prompt: str):
     out_path.mkdir(exist_ok=True, parents=True)
     _store_latents(latents=latents, out_path=out_path)
 
+
 ###
 
 if __name__ == '__main__':
-   
+
     parser = argparse.ArgumentParser()
     _args(parser=parser)
     args = parser.parse_args()

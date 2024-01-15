@@ -20,7 +20,7 @@ setup(
     install_requires=[
         "filelock",
         "Pillow",
-        "torch",
+        "pytorch",
         "fire",
         "humanize",
         "requests",
