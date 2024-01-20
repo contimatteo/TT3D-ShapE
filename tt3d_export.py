@@ -31,13 +31,21 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
     assert path.exists()
     assert path.is_dir()
 
+    prompts_latents_map: T_Latents = {}
+
     print("")
     for prompt_path in path.rglob("*"):
         if prompt_path.is_dir():
             print(prompt_path.name)
+            filename = "latents.pt"
+            filepath = prompt_path.joinpath(filename)
+            assert path.exists() and path.is_file()
+            prompt = prompt_path.name.replace("_", " ")
+            prompts_latents_map[prompt] = torch.load(filepath)
+
     print("")
 
-    raise Exception("TODO: implement this function!")
+    return prompts_latents_map
 
 
 def _convert_latents_to_objs(
