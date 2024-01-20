@@ -34,7 +34,7 @@ class _Cuda():
         return os.environ["CUDA_VISIBLE_DEVICES"]
 
     @classmethod
-    def init(cls) -> None:
+    def init(cls) -> torch.cuda.device:
         """
         We run all the experiments on server which have 4 different GPUs.
         Unfortunately, we cannot use all of them at the same time, since many other people are 
@@ -50,6 +50,8 @@ class _Cuda():
 
         device_idx, _ = cls.get_current_device_info()
         assert device_idx == 0
+
+        return cls.device()
 
 
 ###

@@ -1,7 +1,3 @@
-import env_setup
-
-################################################################################
-
 from typing import Dict, Tuple, Any, Optional
 
 import argparse
@@ -13,9 +9,9 @@ from shap_e.diffusion.gaussian_diffusion import GaussianDiffusion
 from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
 from shap_e.models.download import load_model
 from shap_e.models.download import load_config
-from shap_e.util.notebooks import create_pan_cameras
-from shap_e.util.notebooks import decode_latent_images
-from shap_e.util.notebooks import gif_widget
+# from shap_e.util.notebooks import create_pan_cameras
+# from shap_e.util.notebooks import decode_latent_images
+# from shap_e.util.notebooks import gif_widget
 
 from utils import Utils
 
@@ -23,13 +19,9 @@ from utils import Utils
 
 T_Model = Dict[str, torch.Tensor]
 
-device = Utils.Cuda.device()
+device = Utils.Cuda.init()
 
 ###
-
-
-def _args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument('--prompt', type=str, required=True)
 
 
 def _load_models(
@@ -102,7 +94,8 @@ def main(prompt: str):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    _args(parser=parser)
+    parser.add_argument('--prompt', type=str, required=True)
+
     args = parser.parse_args()
 
     #
