@@ -78,6 +78,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--prompt', type=str, required=True)
     parser.add_argument('--source-latents-path', type=Path, required=True)
+    parser.add_argument('--out-obj-path', type=Path, required=True)
 
     args = parser.parse_args()
 
