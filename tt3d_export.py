@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, Iterator
+from typing import Tuple, Dict, Iterator, Any
 
 import argparse
 import torch
@@ -13,7 +13,6 @@ from utils import Utils
 
 ###
 
-T_Model = Dict[str, torch.Tensor]
 T_Latents = Dict[str, torch.Tensor]
 
 device = Utils.Cuda.init()
@@ -21,7 +20,7 @@ device = Utils.Cuda.init()
 ###
 
 
-def _load_models() -> T_Model:
+def _load_models() -> Any:
     xm = load_model('transmitter', device=device)
     return xm
 
@@ -49,11 +48,11 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
 
 
 def _convert_latents_to_objs(
-    xm_model: T_Model,
+    xm_model: Any,
     latents: T_Latents,
     out_path=Path,
 ) -> None:
-    assert isinstance(xm_model, dict)
+    assert xm_model is not None
     assert isinstance(latents, dict)
     assert isinstance(out_path, Path)
     ### Example of saving the latents as meshes.
