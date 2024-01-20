@@ -5,15 +5,14 @@ import torch
 
 from pathlib import Path
 from shap_e.models.download import load_model
-# from shap_e.util.notebooks import create_pan_cameras
 from shap_e.util.notebooks import decode_latent_images
-# from shap_e.util.notebooks import gif_widget
+from shap_e.util.notebooks import decode_latent_mesh
 
 from utils import Utils
 
 ###
 
-T_Latents = Dict[str, torch.Tensor]
+T_Latents = Tuple[str, torch.Tensor]
 
 device = Utils.Cuda.init()
 
@@ -30,7 +29,7 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
     assert path.exists()
     assert path.is_dir()
 
-    prompts_latents_map: T_Latents = {}
+    # prompts_latents_map: T_Latents = {}
 
     print("")
     for prompt_path in path.rglob("*"):
@@ -40,30 +39,36 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
             filepath = prompt_path.joinpath(filename)
             assert filepath.exists() and filepath.is_file()
             prompt = prompt_path.name.replace("_", " ")
-            prompts_latents_map[prompt] = torch.load(filepath)
-
+            # prompts_latents_map[prompt] = torch.load(filepath)
+            yield prompt, torch.load(filepath)
     print("")
-
-    return prompts_latents_map
 
 
 def _convert_latents_to_objs(
     xm_model: Any,
-    latents: T_Latents,
+    source_path: Path,
     out_path=Path,
 ) -> None:
     assert xm_model is not None
-    assert isinstance(latents, dict)
+    assert isinstance(source_path, Path)
     assert isinstance(out_path, Path)
-    ### Example of saving the latents as meshes.
-    from shap_e.util.notebooks import decode_latent_mesh
 
-    # for i, latent in enumerate(latents):
-    #     t = decode_latent_mesh(xm, latent).tri_mesh()
-    #     with open(f'example_mesh_{i}.ply', 'wb') as f:
-    #         t.write_ply(f)
-    #     with open(f'example_mesh_{i}.obj', 'w') as f:
-    #         t.write_obj(f)
+    latents_iter = _load_latents(path=source_path)
+
+    for idx, (prompt, latent) in enumerate(latents_iter):
+        tri_mesh = decode_latent_mesh(xm_model, latent).tri_mesh()
+
+        prompt_dirname = prompt.replace(" ", "_")
+        file_basepath = out_path.joinpath(prompt_dirname, "meshes", idx)
+        file_basepath.mkdir(parents=True, exist_ok=True)
+
+        ply_filepath = file_basepath.joinpath("mesh.ply")
+        with open(ply_filepath, 'wb') as f:
+            tri_mesh.write_ply(f)
+
+        obj_filepath = file_basepath.joinpath("mesh.obj")
+        with open(obj_filepath, 'w', encoding="utf-8") as f:
+            tri_mesh.write_obj(f)
 
 
 ###
