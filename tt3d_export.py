@@ -51,7 +51,11 @@ def _convert_latents_to_objs(
 ) -> None:
     assert xm_model is not None
     assert isinstance(source_path, Path)
+    assert source_path.exists()
+    assert source_path.is_dir()
     assert isinstance(out_path, Path)
+    assert out_path.exists()
+    assert out_path.is_dir()
 
     latents_iter = _load_latents(path=source_path)
 
@@ -74,13 +78,12 @@ def _convert_latents_to_objs(
 ###
 
 
-def main(source_latents_path: Path, out_obj_path: Path) -> None:
+def main(source_path: Path, out_path: Path) -> None:
     xm_model = _load_models()
-    latents = _load_latents(path=source_latents_path)
     _convert_latents_to_objs(
         xm_model=xm_model,
-        latents=latents,
-        out_path=out_obj_path,
+        source_path=source_path,
+        out_path=out_path,
     )
 
 
@@ -90,14 +93,14 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     # parser.add_argument('--prompt', type=str, required=True)
-    parser.add_argument('--source-latents-path', type=Path, required=True)
-    parser.add_argument('--out-obj-path', type=Path, required=True)
+    parser.add_argument('--source-path', type=Path, required=True)
+    parser.add_argument('--out-path', type=Path, required=True)
 
     args = parser.parse_args()
 
     #
 
     main(
-        source_latents_path=args.source_latents_path,
-        out_obj_path=args.out_obj_path,
+        source_path=args.source_path,
+        out_path=args.out_path,
     )
