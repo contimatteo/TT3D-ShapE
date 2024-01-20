@@ -39,7 +39,7 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
             print(prompt_path.name)
             filename = "latents.pt"
             filepath = prompt_path.joinpath(filename)
-            assert path.exists() and path.is_file()
+            assert filepath.exists() and filepath.is_file()
             prompt = prompt_path.name.replace("_", " ")
             prompts_latents_map[prompt] = torch.load(filepath)
 
@@ -53,8 +53,8 @@ def _convert_latents_to_objs(
     latents: T_Latents,
     out_path=Path,
 ) -> None:
-    assert isinstance(xm_model, T_Model)
-    assert isinstance(latents, T_Latents)
+    assert isinstance(xm_model, dict)
+    assert isinstance(latents, dict)
     assert isinstance(out_path, Path)
     ### Example of saving the latents as meshes.
     from shap_e.util.notebooks import decode_latent_mesh
