@@ -36,11 +36,13 @@ def _sample_latents(
     prompt: str,
     model: T_Model,
     diffusion: GaussianDiffusion,
-    batch_size: int = 4,
+    batch_size: int,  # = 4,
     guidance_scale: float = 15.0,
 ) -> torch.Tensor:
     assert isinstance(prompt, str)
     assert len(prompt) > 0
+    assert isinstance(batch_size, int)
+    assert 1 <= batch_size <= 1000  ### avoid naive mistakes ...
 
     ### TODO: map all params to config file ...
     return sample_latents(
@@ -77,13 +79,14 @@ def _store_latents(prompt: str, latents: torch.Tensor) -> None:
 ###
 
 
-def main(prompt: str):
+def main(prompt: str, steps: int):
     model, diffusion, _ = _load_models(xm=False)
 
     latents: torch.Tensor = _sample_latents(
         prompt=prompt,
         model=model,
         diffusion=diffusion,
+        batch_size=steps,
     )
 
     _store_latents(prompt=prompt, latents=latents)
@@ -95,9 +98,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--prompt', type=str, required=True)
+    parser.add_argument('--steps', type=int, default=4)
 
     args = parser.parse_args()
 
     #
 
-    main(prompt=args.prompt)
+    main(
+        prompt=args.prompt,
+        steps=args.steps,
+    )
