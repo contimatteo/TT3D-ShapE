@@ -1,6 +1,17 @@
 import torch
 
-# ###
+###
+
+
+
+class _Cuda():
+    @staticmethod
+
+###
+
+
+class Utils():
+    
 
 
 def get_cuda_device() -> torch.cuda.device:

@@ -22,6 +22,27 @@ T_Model = Dict[str, torch.Tensor]
 # assert Utils.cuda_is_available()  ### TODO: enable this check?
 device = Utils.get_cuda_device()
 
+print("")
+# print(f'available: {torch.cuda.is_available()}')
+# print(f'available devices: {torch.cuda.device_count()}')
+# torch.cuda.set_device(1)
+# print(f'current device: { torch.cuda.current_device()}')
+# print("")
+# for i in range(torch.cuda.device_count()):
+#    print(torch.cuda.get_device_properties(i).name)
+print("Is cuda available?", torch.cuda.is_available())
+print("Is cuDNN version:", torch.backends.cudnn.version())
+print("cuDNN enabled? ", torch.backends.cudnn.enabled)
+print("Device count?", torch.cuda.device_count())
+print("Current device?", torch.cuda.current_device())
+print("Device name? ", torch.cuda.get_device_name(torch.cuda.current_device()))
+print("")
+
+print("")
+print("")
+raise Exception("stop")
+
+
 ###
 
 
