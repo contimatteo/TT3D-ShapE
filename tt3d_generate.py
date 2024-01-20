@@ -1,3 +1,7 @@
+import env_setup
+
+################################################################################
+
 from typing import Dict, Tuple, Any, Optional
 
 import argparse
@@ -19,7 +23,7 @@ from utils import Utils
 
 T_Model = Dict[str, torch.Tensor]
 
-device = Utils.Cuda.init()
+device = Utils.Cuda.device()
 
 print("")
 # print(f'available: {torch.cuda.is_available()}')
