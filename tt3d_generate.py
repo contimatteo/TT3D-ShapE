@@ -67,7 +67,7 @@ def _store_latents(prompt: str, latents: torch.Tensor) -> None:
     prompt_dir_name = prompt.strip().replace(" ", "_")
     filename = "latents.pt"
 
-    out_path = Path(".").joinpath("outputs", prompt_dir_name)
+    out_path = Path(".").joinpath("outputs", "latents", prompt_dir_name)
     out_path.mkdir(exist_ok=True, parents=True)
     out_path = out_path.joinpath(filename)
 

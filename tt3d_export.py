@@ -24,15 +24,11 @@ def _load_models() -> Any:
     return xm
 
 
-def _load_latents(path: Path) -> Iterator[T_Latents]:
-    assert isinstance(path, Path)
-    assert path.exists()
-    assert path.is_dir()
-
-    # prompts_latents_map: T_Latents = {}
+def _load_latents() -> Iterator[T_Latents]:
+    source_path = Path("outputs", "latents")
 
     print("")
-    for prompt_path in path.rglob("*"):
+    for prompt_path in source_path.rglob("*"):
         if prompt_path.is_dir():
             filename = "latents.pt"
             filepath = prompt_path.joinpath(filename)
@@ -40,25 +36,15 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
             print(filepath.exists(), filepath)
             assert filepath.exists() and filepath.is_file()
             prompt = prompt_path.name.replace("_", " ")
-            # prompts_latents_map[prompt] = torch.load(filepath)
             yield prompt, torch.load(filepath)
     print("")
 
 
-def _convert_latents_to_objs(
-    xm_model: Any,
-    source_path: Path,
-    out_path=Path,
-) -> None:
+def _convert_latents_to_objs(xm_model: Any) -> None:
     assert xm_model is not None
-    assert isinstance(source_path, Path)
-    assert source_path.exists()
-    assert source_path.is_dir()
-    assert isinstance(out_path, Path)
-    assert out_path.exists()
-    assert out_path.is_dir()
 
-    latents_iter = _load_latents(path=source_path)
+    latents_iter = _load_latents()
+    out_path = Path("outputs", "meshes")
 
     for prompt, latents in latents_iter:
         for idx, latent in enumerate(latents):
@@ -66,15 +52,13 @@ def _convert_latents_to_objs(
 
             prompt_dirname = prompt.replace(" ", "_")
             file_basepath = out_path.joinpath(prompt_dirname)
-            file_basepath = file_basepath.joinpath("meshes")
-            file_basepath = file_basepath.joinpath(str(idx))
             file_basepath.mkdir(parents=True, exist_ok=True)
 
-            ply_filepath = file_basepath.joinpath("mesh.ply")
+            ply_filepath = file_basepath.joinpath(f"mesh_{idx}.ply")
             with open(ply_filepath, 'wb') as f:
                 tri_mesh.write_ply(f)
 
-            obj_filepath = file_basepath.joinpath("mesh.obj")
+            obj_filepath = file_basepath.joinpath(f"mesh_{idx}.obj")
             with open(obj_filepath, 'w', encoding="utf-8") as f:
                 tri_mesh.write_obj(f)
 
