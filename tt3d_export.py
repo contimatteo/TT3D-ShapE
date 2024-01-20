@@ -32,8 +32,9 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
     assert path.is_dir()
 
     print("")
-    for p in path.rglob("*"):
-        print(p.name)
+    for prompt_path in path.rglob("*"):
+        if prompt_path.is_dir():
+            print(prompt_path.name)
     print("")
 
     raise Exception("TODO: implement this function!")
