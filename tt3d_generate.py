@@ -13,14 +13,13 @@ from shap_e.util.notebooks import create_pan_cameras
 from shap_e.util.notebooks import decode_latent_images
 from shap_e.util.notebooks import gif_widget
 
-import utils as Utils
+from utils import Utils
 
 ###
 
 T_Model = Dict[str, torch.Tensor]
 
-# assert Utils.cuda_is_available()  ### TODO: enable this check?
-device = Utils.get_cuda_device()
+device = Utils.Cuda.init()
 
 print("")
 # print(f'available: {torch.cuda.is_available()}')
@@ -41,7 +40,6 @@ print("")
 print("")
 print("")
 raise Exception("stop")
-
 
 ###
 
