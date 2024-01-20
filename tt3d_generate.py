@@ -36,13 +36,17 @@ def _sample_latents(
     prompt: str,
     model: T_Model,
     diffusion: GaussianDiffusion,
-    batch_size: int,  # = 4,
+    batch_size: int = 4,
     guidance_scale: float = 15.0,
+    karras_steps: int = 64,
 ) -> torch.Tensor:
     assert isinstance(prompt, str)
     assert len(prompt) > 0
     assert isinstance(batch_size, int)
     assert 1 <= batch_size <= 1000  ### avoid naive mistakes ...
+    assert isinstance(guidance_scale, float)
+    assert isinstance(karras_steps, int)
+    assert 1 <= karras_steps <= 1000  ### avoid naive mistakes ...
 
     ### TODO: map all params to config file ...
     return sample_latents(
@@ -55,7 +59,7 @@ def _sample_latents(
         clip_denoised=True,
         use_fp16=True,
         use_karras=True,
-        karras_steps=64,
+        karras_steps=karras_steps,
         sigma_min=1e-3,
         sigma_max=160,
         s_churn=0,
@@ -79,14 +83,15 @@ def _store_latents(prompt: str, latents: torch.Tensor) -> None:
 ###
 
 
-def main(prompt: str, steps: int):
+def main(prompt: str, batch_size: int, karras_steps: int):
     model, diffusion, _ = _load_models(xm=False)
 
     latents: torch.Tensor = _sample_latents(
         prompt=prompt,
         model=model,
         diffusion=diffusion,
-        batch_size=steps,
+        batch_size=batch_size,
+        karras_steps=karras_steps,
     )
 
     _store_latents(prompt=prompt, latents=latents)
@@ -98,7 +103,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--prompt', type=str, required=True)
-    parser.add_argument('--steps', type=int, default=4)
+    parser.add_argument('--batch-size', type=int, default=4)
+    parser.add_argument('--karras-steps', type=int, default=64)
 
     args = parser.parse_args()
 
@@ -106,5 +112,6 @@ if __name__ == '__main__':
 
     main(
         prompt=args.prompt,
-        steps=args.steps,
+        batch_size=args.batch_size,
+        karras_steps=args.karras_steps,
     )
