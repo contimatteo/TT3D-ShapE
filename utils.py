@@ -44,7 +44,8 @@ class _Cuda():
         variable is set.
         """
         assert cls.is_available()
-        assert cls.get_visible_devices_param() == "1"
+        assert isinstance(cls.get_visible_devices_param(), str)
+        # assert cls.get_visible_devices_param() == "1"
         assert cls.count_devices() == 1
 
         device_idx, _ = cls.get_current_device_info()

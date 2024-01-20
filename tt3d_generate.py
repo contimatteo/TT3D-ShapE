@@ -25,26 +25,6 @@ T_Model = Dict[str, torch.Tensor]
 
 device = Utils.Cuda.device()
 
-print("")
-# print(f'available: {torch.cuda.is_available()}')
-# print(f'available devices: {torch.cuda.device_count()}')
-# torch.cuda.set_device(1)
-# print(f'current device: { torch.cuda.current_device()}')
-# print("")
-# for i in range(torch.cuda.device_count()):
-#    print(torch.cuda.get_device_properties(i).name)
-print("Is cuda available?", torch.cuda.is_available())
-print("Is cuDNN version:", torch.backends.cudnn.version())
-print("cuDNN enabled? ", torch.backends.cudnn.enabled)
-print("Device count?", torch.cuda.device_count())
-print("Current device?", torch.cuda.current_device())
-print("Device name? ", torch.cuda.get_device_name(torch.cuda.current_device()))
-print("")
-
-print("")
-print("")
-raise Exception("stop")
-
 ###
 
 
@@ -66,7 +46,7 @@ def _sample_latents(
     diffusion: GaussianDiffusion,
     batch_size: int = 4,
     guidance_scale: float = 15.0,
-) -> Any:
+) -> torch.Tensor:
     assert isinstance(prompt, str)
     assert len(prompt) > 0
 
@@ -88,11 +68,18 @@ def _sample_latents(
     )
 
 
-def _store_latents(out_path: Path, latents: Any) -> None:
-    assert isinstance(out_path, Path)
-    assert out_path.exists()
-    assert out_path.is_dir()
-    # assert isinstance(latents, ?)
+def _store_latents(prompt: str, latents: torch.Tensor) -> None:
+    assert isinstance(prompt, str)
+    assert isinstance(latents, torch.Tensor)
+
+    prompt_dir_name = prompt.strip().replace(" ", "_")
+    filename = "latents.pt"
+
+    out_path = Path(".").joinpath("outputs", prompt_dir_name)
+    out_path.mkdir(exist_ok=True, parents=True)
+    out_path = out_path.joinpath(filename)
+
+    torch.save(latents, out_path)
 
 
 ###
@@ -100,21 +87,14 @@ def _store_latents(out_path: Path, latents: Any) -> None:
 
 def main(prompt: str):
     model, diffusion, _ = _load_models(xm=False)
-    latents = _sample_latents(prompt=prompt, model=model, diffusion=diffusion)
 
-    print("")
-    print("")
-    print(type(latents))
-    print("")
-    print("")
+    latents: torch.Tensor = _sample_latents(
+        prompt=prompt,
+        model=model,
+        diffusion=diffusion,
+    )
 
-    return
-
-    out_prompt_dir_name = prompt.strip().replace(" ", "_")
-    out_path = Path(".")
-    out_path.joinpath("outputs", out_prompt_dir_name)
-    out_path.mkdir(exist_ok=True, parents=True)
-    _store_latents(latents=latents, out_path=out_path)
+    _store_latents(prompt=prompt, latents=latents)
 
 
 ###
