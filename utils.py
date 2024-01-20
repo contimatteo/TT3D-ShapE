@@ -11,7 +11,7 @@ class _Cuda():
     @staticmethod
     def is_available() -> bool:
         _cuda = torch.cuda.is_available()
-        _cudnn = torch.backends.cudnn.enabled()
+        _cudnn = torch.backends.cudnn.enabled
         return _cuda and _cudnn
 
     @classmethod
