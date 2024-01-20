@@ -34,9 +34,10 @@ def _load_latents(path: Path) -> Iterator[T_Latents]:
     print("")
     for prompt_path in path.rglob("*"):
         if prompt_path.is_dir():
-            print(prompt_path.name)
             filename = "latents.pt"
             filepath = prompt_path.joinpath(filename)
+            print(prompt_path.name)
+            print(filepath.exists(), filepath)
             assert filepath.exists() and filepath.is_file()
             prompt = prompt_path.name.replace("_", " ")
             # prompts_latents_map[prompt] = torch.load(filepath)
@@ -59,20 +60,23 @@ def _convert_latents_to_objs(
 
     latents_iter = _load_latents(path=source_path)
 
-    for idx, (prompt, latent) in enumerate(latents_iter):
-        tri_mesh = decode_latent_mesh(xm_model, latent).tri_mesh()
+    for prompt, latents in latents_iter:
+        for idx, latent in enumerate(latents):
+            tri_mesh = decode_latent_mesh(xm_model, latent).tri_mesh()
 
-        prompt_dirname = prompt.replace(" ", "_")
-        file_basepath = out_path.joinpath(prompt_dirname, "meshes", idx)
-        file_basepath.mkdir(parents=True, exist_ok=True)
+            prompt_dirname = prompt.replace(" ", "_")
+            file_basepath = out_path.joinpath(prompt_dirname)
+            file_basepath = file_basepath.joinpath("meshes")
+            file_basepath = file_basepath.joinpath(str(idx))
+            file_basepath.mkdir(parents=True, exist_ok=True)
 
-        ply_filepath = file_basepath.joinpath("mesh.ply")
-        with open(ply_filepath, 'wb') as f:
-            tri_mesh.write_ply(f)
+            ply_filepath = file_basepath.joinpath("mesh.ply")
+            with open(ply_filepath, 'wb') as f:
+                tri_mesh.write_ply(f)
 
-        obj_filepath = file_basepath.joinpath("mesh.obj")
-        with open(obj_filepath, 'w', encoding="utf-8") as f:
-            tri_mesh.write_obj(f)
+            obj_filepath = file_basepath.joinpath("mesh.obj")
+            with open(obj_filepath, 'w', encoding="utf-8") as f:
+                tri_mesh.write_obj(f)
 
 
 ###
