@@ -39,6 +39,7 @@ def _load_models() -> Any:
 
 
 def _load_prompts_from_source_path(source_path: Path) -> T_Prompts:
+    assert isinstance(source_path, Path)
     assert source_path.exists()
     assert source_path.is_dir()
 
