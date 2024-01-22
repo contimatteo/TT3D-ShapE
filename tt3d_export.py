@@ -1,6 +1,8 @@
-from typing import Tuple, Iterator, Any
+### pylint: disable=missing-function-docstring,missing-class-docstring,missing-module-docstring,wrong-import-order
+from typing import Tuple, Any, List
 from pathlib import Path
 
+import argparse
 import torch
 
 from shap_e.models.download import load_model
@@ -8,6 +10,9 @@ from shap_e.util.notebooks import decode_latent_mesh
 from utils import Utils
 
 ###
+
+T_Prompt = Tuple[str, Path]  ### pylint: disable=invalid-name
+T_Prompts = List[T_Prompt]  ### pylint: disable=invalid-name
 
 device = Utils.Cuda.init()
 
@@ -19,34 +24,69 @@ def _load_models() -> Any:
     return xm
 
 
-def _load_latents() -> Iterator[Tuple[str, torch.Tensor]]:
-    source_path = Path("outputs", "latents")
+# def _load_latents() -> Iterator[Tuple[str, torch.Tensor]]:
+#     source_path = Path("outputs", "latents")
+#     print("")
+#     for prompt_path in source_path.rglob("*"):
+#         if prompt_path.is_dir():
+#             filename = "latents.pt"
+#             filepath = prompt_path.joinpath(filename)
+#             print(prompt_path.name)
+#             assert filepath.exists() and filepath.is_file()
+#             prompt = prompt_path.name.replace("_", " ")
+#             yield prompt, torch.load(filepath)
+#     print("")
 
-    print("")
+
+def _load_prompts_from_source_path(source_path: Path) -> T_Prompts:
+    assert source_path.exists()
+    assert source_path.is_dir()
+
+    prompts: T_Prompts = []
     for prompt_path in source_path.rglob("*"):
         if prompt_path.is_dir():
-            filename = "latents.pt"
-            filepath = prompt_path.joinpath(filename)
-            print(prompt_path.name)
-            assert filepath.exists() and filepath.is_file()
-            prompt = prompt_path.name.replace("_", " ")
-            yield prompt, torch.load(filepath)
-    print("")
+            prompt_dirname = Utils.Prompt.decode(prompt=prompt_path.name)
+            prompts.append((prompt_dirname, prompt_path))
+
+    return prompts
 
 
-def _convert_latents_to_objs(xm_model: Any) -> None:
+def _convert_latents_to_objs(
+    out_rootpath: Path,
+    xm_model: Any,
+    prompts: T_Prompts,
+) -> None:
+    assert isinstance(out_rootpath, Path)
+    assert out_rootpath.exists()
+    assert out_rootpath.is_dir()
     assert xm_model is not None
+    assert isinstance(prompts, list)
+    assert len(prompts) > 0
+    assert all((isinstance(prompt[0], str) for prompt in prompts))
+    assert all((isinstance(prompt[1], Path) for prompt in prompts))
 
-    latents_iter = _load_latents()
-    out_path = Path("outputs", "meshes")
+    for prompt_dirname, prompt_path in prompts:
+        latents_path = prompt_path.joinpath("ckpts", "latents.pt")
+        assert latents_path.exists()
+        assert latents_path.is_file()
+        latents = torch.load(latents_path)
 
-    for prompt, latents in latents_iter:
+        out_path = out_rootpath.joinpath(prompt_dirname, "meshes")
+        out_path.mkdir(exist_ok=True, parents=True)
+
+        print("")
+        print("")
+        print(out_path)
+        print(latents_path)
+        print("")
+        print("")
+        raise Exception("STOP")
+
         for idx, latent in enumerate(latents):
             tri_mesh = decode_latent_mesh(xm_model, latent).tri_mesh()
 
-            prompt_dirname = prompt.replace(" ", "_")
-            file_basepath = out_path.joinpath(prompt_dirname)
-            file_basepath.mkdir(parents=True, exist_ok=True)
+            # file_basepath = out_path.joinpath(prompt_dirname)
+            # file_basepath.mkdir(parents=True, exist_ok=True)
 
             ply_filepath = file_basepath.joinpath(f"mesh_{idx}.ply")
             with open(ply_filepath, 'wb') as f:
@@ -60,19 +100,27 @@ def _convert_latents_to_objs(xm_model: Any) -> None:
 ###
 
 
-def main() -> None:
+def main(source_path: Path, out_path: Path) -> None:
     xm_model = _load_models()
-    _convert_latents_to_objs(xm_model=xm_model)
+
+    prompts = _load_prompts_from_source_path(source_path=source_path)
+
+    _convert_latents_to_objs(
+        out_rootpath=out_path,
+        xm_model=xm_model,
+        prompts=prompts,
+    )
 
 
 ###
 
 if __name__ == '__main__':
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--prompt', type=str, required=True)
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source-path', type=Path, required=True)
+    parser.add_argument('--out-path', type=Path, required=True)
+    args = parser.parse_args()
 
     #
 
-    main()
+    main(source_path=args.source_path, out_path=args.out_path)
