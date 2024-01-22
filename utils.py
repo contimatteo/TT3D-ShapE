@@ -1,7 +1,10 @@
-from typing import Tuple
+### pylint: disable=missing-function-docstring,missing-class-docstring,missing-module-docstring,wrong-import-order
+from typing import Tuple, List
 
 import os
 import torch
+
+from pathlib import Path
 
 ###
 
@@ -24,7 +27,8 @@ class _Cuda():
         assert cls.is_available()
         return torch.cuda.device_count()
 
-    def get_current_device_info() -> Tuple[int, str]:
+    @classmethod
+    def get_current_device_info(cls) -> Tuple[int, str]:
         _idx = torch.cuda.current_device()
         _name = torch.cuda.get_device_name(_idx)
         return _idx, _name
@@ -57,6 +61,48 @@ class _Cuda():
 ###
 
 
+class _Prompt():
+
+    ENCODING_CHAR: str = "_"
+
+    @classmethod
+    def encode(cls, prompt: str) -> str:
+        assert isinstance(prompt, str)
+        assert len(prompt) > 0
+        prompt = prompt.strip()
+        prompt = prompt.replace(" ", cls.ENCODING_CHAR)
+        return prompt
+
+    @classmethod
+    def decode(cls, prompt: str) -> str:
+        assert isinstance(prompt, str)
+        assert len(prompt) > 0
+        prompt = prompt.strip()
+        prompt = prompt.replace(cls.ENCODING_CHAR, " ")
+        return prompt
+
+    @staticmethod
+    def extract_from_file(filepath: Path) -> List[str]:
+        assert isinstance(filepath, Path)
+        assert filepath.exists()
+        assert filepath.is_file()
+        assert filepath.suffix == ".txt"
+
+        with open(filepath, "r", encoding="utf-8") as f:
+            prompts = f.readlines()
+
+        prompts = map(lambda p: p.strip(), prompts)
+        prompts = filter(lambda p: len(p > 1), prompts)
+        ### TODO: filter out prompts with special chars ...
+        prompts = list(prompts)
+
+        return prompts
+
+
+###
+
+
 class Utils():
 
     Cuda = _Cuda
+    Prompt = _Prompt

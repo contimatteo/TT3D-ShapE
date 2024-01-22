@@ -1,4 +1,5 @@
-from typing import Dict, Tuple, Any, Optional
+### pylint: disable=missing-function-docstring,missing-class-docstring,missing-module-docstring,wrong-import-order
+from typing import Tuple, Any
 
 import argparse
 import torch
@@ -9,32 +10,25 @@ from shap_e.diffusion.gaussian_diffusion import GaussianDiffusion
 from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
 from shap_e.models.download import load_model
 from shap_e.models.download import load_config
-# from shap_e.util.notebooks import create_pan_cameras
-# from shap_e.util.notebooks import decode_latent_images
-# from shap_e.util.notebooks import gif_widget
 
 from utils import Utils
 
 ###
-
-T_Model = Dict[str, torch.Tensor]
 
 device = Utils.Cuda.init()
 
 ###
 
 
-def _load_models(
-        xm: bool) -> Tuple[T_Model, GaussianDiffusion, Optional[T_Model]]:
+def _load_models() -> Tuple[Any, GaussianDiffusion]:
     model = load_model('text300M', device=device)
     diffusion = diffusion_from_config(load_config('diffusion'))
-    xm = xm if load_model('transmitter', device=device) else None
-    return model, diffusion, xm
+    return model, diffusion
 
 
 def _sample_latents(
     prompt: str,
-    model: T_Model,
+    model: Any,
     diffusion: GaussianDiffusion,
     batch_size: int = 4,
     guidance_scale: float = 15.0,
@@ -66,15 +60,22 @@ def _sample_latents(
     )
 
 
-def _store_latents(prompt: str, latents: torch.Tensor) -> None:
+def _store_latents(
+    out_rootpath: Path,
+    prompt: str,
+    latents: torch.Tensor,
+) -> None:
+    assert isinstance(out_rootpath, Path)
+    assert out_rootpath.exists()
+    assert out_rootpath.is_dir()
     assert isinstance(prompt, str)
     assert isinstance(latents, torch.Tensor)
 
-    prompt_dir_name = prompt.strip().replace(" ", "_")
-    filename = "latents.pt"
-
-    out_path = Path(".").joinpath("outputs", "latents", prompt_dir_name)
+    prompt_dirname = Utils.Prompt.encode(prompt)
+    out_path = out_rootpath.joinpath("latents", prompt_dirname)
     out_path.mkdir(exist_ok=True, parents=True)
+
+    filename = "latents.pt"
     out_path = out_path.joinpath(filename)
 
     torch.save(latents, out_path)
@@ -83,18 +84,25 @@ def _store_latents(prompt: str, latents: torch.Tensor) -> None:
 ###
 
 
-def main(prompt: str, batch_size: int, karras_steps: int):
-    model, diffusion, _ = _load_models(xm=False)
+def main(
+    prompt_filepath: Path,
+    out_path: Path,
+    batch_size: int,
+    karras_steps: int,
+):
+    model, diffusion = _load_models()
 
-    latents: torch.Tensor = _sample_latents(
-        prompt=prompt,
-        model=model,
-        diffusion=diffusion,
-        batch_size=batch_size,
-        karras_steps=karras_steps,
-    )
+    prompts = Utils.Prompt.extract_from_file(filepath=prompt_filepath)
 
-    _store_latents(prompt=prompt, latents=latents)
+    for prompt in prompts:
+        latents: torch.Tensor = _sample_latents(
+            prompt=prompt,
+            model=model,
+            diffusion=diffusion,
+            batch_size=batch_size,
+            karras_steps=karras_steps,
+        )
+        _store_latents(out_rootpath=out_path, prompt=prompt, latents=latents)
 
 
 ###
@@ -102,7 +110,9 @@ def main(prompt: str, batch_size: int, karras_steps: int):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--prompt', type=str, required=True)
+    parser.add_argument('--prompt-file', type=Path, required=True)
+    # parser.add_argument('--source-path', type=Path, required=True)
+    parser.add_argument('--out-path', type=Path, required=True)
     parser.add_argument('--batch-size', type=int, default=4)
     parser.add_argument('--karras-steps', type=int, default=64)
 
@@ -111,7 +121,8 @@ if __name__ == '__main__':
     #
 
     main(
-        prompt=args.prompt,
+        prompt_filepath=args.prompt_file,
+        out_path=args.out_path,
         batch_size=args.batch_size,
         karras_steps=args.karras_steps,
     )
