@@ -72,7 +72,7 @@ def _store_latents(
     assert isinstance(latents, torch.Tensor)
 
     prompt_dirname = Utils.Prompt.encode(prompt)
-    out_path = out_rootpath.joinpath("latents", prompt_dirname)
+    out_path = out_rootpath.joinpath(prompt_dirname, "ckpts")
     out_path.mkdir(exist_ok=True, parents=True)
 
     filename = "latents.pt"
