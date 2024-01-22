@@ -1,5 +1,5 @@
 ### pylint: disable=missing-function-docstring,missing-class-docstring,missing-module-docstring,wrong-import-order
-from typing import Tuple, Any, List
+from typing import Tuple, Any, List, Iterator
 from pathlib import Path
 
 import argparse
@@ -12,7 +12,8 @@ from utils import Utils
 ###
 
 T_Prompt = Tuple[str, Path]  ### pylint: disable=invalid-name
-T_Prompts = List[T_Prompt]  ### pylint: disable=invalid-name
+# T_Prompts = List[T_Prompt]  ### pylint: disable=invalid-name
+T_Prompts = Iterator[T_Prompt]  ### pylint: disable=invalid-name
 
 device = Utils.Cuda.init()
 
@@ -43,13 +44,14 @@ def _load_prompts_from_source_path(source_path: Path) -> T_Prompts:
     assert source_path.exists()
     assert source_path.is_dir()
 
-    prompts: T_Prompts = []
-    for prompt_path in source_path.rglob("*"):
+    # prompts: T_Prompts = []
+    # for prompt_path in source_path.rglob("*"):
+    for prompt_path in source_path.iterdir():
         if prompt_path.is_dir():
             prompt_dirname = prompt_path.name
-            prompts.append((prompt_dirname, prompt_path))
-
-    return prompts
+            # prompts.append((prompt_dirname, prompt_path))
+            yield (prompt_dirname, prompt_path)
+    # return prompts
 
 
 def _convert_latents_to_objs(
@@ -61,13 +63,12 @@ def _convert_latents_to_objs(
     assert out_rootpath.exists()
     assert out_rootpath.is_dir()
     assert xm_model is not None
-    assert isinstance(prompts, list)
-    assert len(prompts) > 0
-    assert all((isinstance(prompt[0], str) for prompt in prompts))
-    assert all((isinstance(prompt[1], Path) for prompt in prompts))
 
     print(">")
     for prompt_dirname, prompt_path in prompts:
+        assert isinstance(prompt_dirname, str)
+        assert isinstance(prompt_path, Path)
+
         latents_path = prompt_path.joinpath("ckpts", "latents.pt")
         print(">", latents_path)
         assert latents_path.exists()
