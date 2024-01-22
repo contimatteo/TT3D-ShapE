@@ -75,25 +75,14 @@ def _convert_latents_to_objs(
         out_path = out_rootpath.joinpath(prompt_dirname, "meshes")
         out_path.mkdir(exist_ok=True, parents=True)
 
-        print("")
-        print("")
-        print(out_path)
-        print(latents_path)
-        print("")
-        print("")
-        raise Exception("STOP")
-
         for idx, latent in enumerate(latents):
             tri_mesh = decode_latent_mesh(xm_model, latent).tri_mesh()
 
-            # file_basepath = out_path.joinpath(prompt_dirname)
-            # file_basepath.mkdir(parents=True, exist_ok=True)
-
-            ply_filepath = file_basepath.joinpath(f"mesh_{idx}.ply")
+            ply_filepath = out_path.joinpath(f"mesh_{idx}.ply")
             with open(ply_filepath, 'wb') as f:
                 tri_mesh.write_ply(f)
 
-            obj_filepath = file_basepath.joinpath(f"mesh_{idx}.obj")
+            obj_filepath = out_path.joinpath(f"mesh_{idx}.obj")
             with open(obj_filepath, 'w', encoding="utf-8") as f:
                 tri_mesh.write_obj(f)
 
