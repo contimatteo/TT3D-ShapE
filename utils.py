@@ -92,7 +92,7 @@ class _Prompt():
             prompts = f.readlines()
 
         prompts = map(lambda p: p.strip(), prompts)
-        prompts = filter(lambda p: len(p > 1), prompts)
+        prompts = filter(lambda p: len(p) > 1, prompts)
         ### TODO: filter out prompts with special chars ...
         prompts = list(prompts)
 
