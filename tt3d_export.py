@@ -70,7 +70,9 @@ def _convert_latents_to_objs(
         assert isinstance(prompt_path, Path)
 
         latents_path = prompt_path.joinpath("ckpts", "latents.pt")
+        print(">")
         print(">", latents_path)
+        print(">")
         assert latents_path.exists()
         assert latents_path.is_file()
         latents = torch.load(latents_path)
