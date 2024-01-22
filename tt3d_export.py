@@ -46,7 +46,7 @@ def _load_prompts_from_source_path(source_path: Path) -> T_Prompts:
     prompts: T_Prompts = []
     for prompt_path in source_path.rglob("*"):
         if prompt_path.is_dir():
-            prompt_dirname = Utils.Prompt.decode(prompt=prompt_path.name)
+            prompt_dirname = prompt_path.name
             prompts.append((prompt_dirname, prompt_path))
 
     return prompts
@@ -66,8 +66,10 @@ def _convert_latents_to_objs(
     assert all((isinstance(prompt[0], str) for prompt in prompts))
     assert all((isinstance(prompt[1], Path) for prompt in prompts))
 
+    print(">")
     for prompt_dirname, prompt_path in prompts:
         latents_path = prompt_path.joinpath("ckpts", "latents.pt")
+        print(">", latents_path)
         assert latents_path.exists()
         assert latents_path.is_file()
         latents = torch.load(latents_path)
@@ -85,6 +87,7 @@ def _convert_latents_to_objs(
             obj_filepath = out_path.joinpath(f"mesh_{idx}.obj")
             with open(obj_filepath, 'w', encoding="utf-8") as f:
                 tri_mesh.write_obj(f)
+    print(">")
 
 
 ###
