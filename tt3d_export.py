@@ -115,6 +115,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--source-path', type=Path, required=True)
     parser.add_argument('--out-path', type=Path, required=True)
+    ### TODO: add option to skip existing objs.
+    # parser.add_argument("--skip-existing", action="store_true", default=False)
+
     args = parser.parse_args()
 
     #
