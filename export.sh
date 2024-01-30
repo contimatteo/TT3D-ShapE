@@ -5,5 +5,4 @@
 exit 0
 
 CUDA_VISIBLE_DEVICES=2 python3 tt3d_export.py \
-  --source-path /media/data2/mconti/TT3D/models/ShapE/outputs/ \
-  --out-path /media/data2/mconti/TT3D/models/ShapE/outputs/
+  --source-path /media/data2/mconti/TT3D/models/ShapE/outputs/
