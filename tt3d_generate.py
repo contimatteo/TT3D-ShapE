@@ -32,14 +32,14 @@ def _generate_latents(
     model: Any,
     diffusion: GaussianDiffusion,
     skip_existing: bool,
-    batch_size: int = 4,
+    # batch_size: int = 4,
     guidance_scale: float = 15.0,
     karras_steps: int = 64,
 ) -> None:
     assert isinstance(prompt, str)
     assert len(prompt) > 0
-    assert isinstance(batch_size, int)
-    assert 1 <= batch_size <= 1000  ### avoid naive mistakes ...
+    # assert isinstance(batch_size, int)
+    # assert 1 <= batch_size <= 1000  ### avoid naive mistakes ...
     assert isinstance(guidance_scale, float)
     assert isinstance(karras_steps, int)
     assert 1 <= karras_steps <= 1000  ### avoid naive mistakes ...
@@ -58,7 +58,9 @@ def _generate_latents(
 
     #
 
-    model_kwargs = dict(texts=[prompt] * batch_size)
+    # model_kwargs = dict(texts=[prompt] * batch_size)
+    batch_size = 1
+    model_kwargs = dict(texts=[prompt])
 
     ### TODO: map all params to config file ...
     latents = sample_latents(
@@ -109,12 +111,12 @@ def main(
     prompt_filepath: Path,
     out_rootpath: Path,
     skip_existing: bool,
-    batch_size: int,
+    # batch_size: int,
     karras_steps: int,
 ):
     assert isinstance(prompt_filepath, Path)
     assert isinstance(out_rootpath, Path)
-    assert isinstance(batch_size, int)
+    # assert isinstance(batch_size, int)
     assert isinstance(skip_existing, bool)
 
     if out_rootpath.exists():
@@ -141,7 +143,7 @@ def main(
             model=model,
             diffusion=diffusion,
             skip_existing=skip_existing,
-            batch_size=batch_size,
+            # batch_size=batch_size,
             karras_steps=karras_steps,
         )
         print("")
@@ -155,7 +157,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--prompt-file', type=Path, required=True)
     parser.add_argument('--out-path', type=Path, required=True)
-    parser.add_argument('--batch-size', type=int, default=4)
+    # parser.add_argument('--batch-size', type=int, default=4)
     parser.add_argument('--karras-steps', type=int, default=64)
     parser.add_argument("--skip-existing", action="store_true", default=False)
 
@@ -167,6 +169,6 @@ if __name__ == '__main__':
         prompt_filepath=args.prompt_file,
         out_rootpath=args.out_path,
         skip_existing=args.skip_existing,
-        batch_size=args.batch_size,
+        # batch_size=args.batch_size,
         karras_steps=args.karras_steps,
     )
