@@ -42,8 +42,34 @@ def _convert_latents_to_objs(
     prompt: str,
     source_rootpath: Path,
     xm_model: Any,
+    skip_existing: bool,
 ) -> None:
     assert xm_model is not None
+
+    out_ply_filepath = Utils.Storage.build_prompt_mesh_filepath(
+        out_rootpath=source_rootpath,
+        prompt=prompt,
+        assert_exists=False,
+        extension="ply",
+    )
+    out_obj_filepath = Utils.Storage.build_prompt_mesh_filepath(
+        out_rootpath=source_rootpath,
+        prompt=prompt,
+        assert_exists=False,
+        extension="obj",
+    )
+
+    if skip_existing:
+        if out_ply_filepath.exists() and out_obj_filepath.exists():
+            print("")
+            print("mesh already exists -> ", out_obj_filepath)
+            print("")
+            return
+
+    out_ply_filepath.parent.mkdir(parents=True, exist_ok=True)
+    out_obj_filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    #
 
     source_prompt_latents_filepath = Utils.Storage.build_prompt_latents_filepath(
         out_rootpath=source_rootpath,
@@ -53,30 +79,11 @@ def _convert_latents_to_objs(
 
     latents = torch.load(source_prompt_latents_filepath)
 
-    #
-
     assert len(latents) == 1
     latent = latents[0]
 
     # for idx, latent in enumerate(latents):
     mesh = decode_latent_mesh(xm_model, latent).tri_mesh()
-
-    out_ply_filepath = Utils.Storage.build_prompt_mesh_filepath(
-        out_rootpath=source_rootpath,
-        prompt=prompt,
-        assert_exists=False,
-        # idx=idx,
-        extension="ply",
-    )
-    out_ply_filepath.parent.mkdir(parents=True, exist_ok=True)
-    out_obj_filepath = Utils.Storage.build_prompt_mesh_filepath(
-        out_rootpath=source_rootpath,
-        prompt=prompt,
-        assert_exists=False,
-        # idx=idx,
-        extension="obj",
-    )
-    out_obj_filepath.parent.mkdir(parents=True, exist_ok=True)
 
     with open(out_ply_filepath, 'wb+') as f:
         mesh.write_ply(f)
@@ -87,10 +94,11 @@ def _convert_latents_to_objs(
 ###
 
 
-def main(source_rootpath: Path,) -> None:
+def main(source_rootpath: Path, skip_existing: bool) -> None:
     assert isinstance(source_rootpath, Path)
     assert source_rootpath.exists()
     assert source_rootpath.is_dir()
+    assert isinstance(skip_existing, bool)
 
     xm_model = _load_models()
     prompts = _load_prompts_from_source_path(source_rootpath=source_rootpath)
@@ -109,6 +117,7 @@ def main(source_rootpath: Path,) -> None:
             prompt=prompt,
             source_rootpath=source_rootpath,
             xm_model=xm_model,
+            skip_existing=skip_existing,
         )
         print("")
     print("")
@@ -120,12 +129,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--source-path', type=Path, required=True)
-    # parser.add_argument('--out-path', type=Path, required=True)
-    ### TODO: add option to skip existing objs.
-    # parser.add_argument("--skip-existing", action="store_true", default=False)
+    parser.add_argument("--skip-existing", action="store_true", default=False)
 
     args = parser.parse_args()
 
     #
 
-    main(source_rootpath=args.source_path)
+    main(
+        source_rootpath=args.source_path,
+        skip_existing=args.skip_existing,
+    )
