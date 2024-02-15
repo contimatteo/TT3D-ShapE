@@ -113,12 +113,24 @@ def main(source_rootpath: Path, skip_existing: bool) -> None:
         print("")
         print(prompt)
 
-        _convert_latents_to_objs(
-            prompt=prompt,
-            source_rootpath=source_rootpath,
-            xm_model=xm_model,
-            skip_existing=skip_existing,
-        )
+        try:
+            _convert_latents_to_objs(
+                prompt=prompt,
+                source_rootpath=source_rootpath,
+                xm_model=xm_model,
+                skip_existing=skip_existing,
+            )
+        except Exception as e:
+            print("")
+            print("")
+            print("========================================")
+            print("Error while running prompt -> ", prompt)
+            print(e)
+            print("========================================")
+            print("")
+            print("")
+            continue
+
         print("")
     print("")
 
